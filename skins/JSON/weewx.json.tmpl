@@ -1,11 +1,13 @@
+## Modified 2026-10-22: optional observations and JSON string escaping.
+#import json
 {
     "station":
     {
-        "location": "$station.location",
+        "location": $json.dumps($station.location, ensure_ascii=False),
         "latitude": $station.stn_info.latitude_f,
         "longitude": $station.stn_info.longitude_f,
         "altitude (meters)": $station.altitude.meter.raw,
-        "link": "$station.station_url"
+        "link": $json.dumps($station.station_url, ensure_ascii=False)
     },
     "generation":
     {
@@ -54,6 +56,24 @@
         #if $current.inHumidity.has_data
         "inside humidity": {"value": $current.inHumidity.raw, "units": "$current.inHumidity.format(" ").lstrip()"},
         #end if
+        #if $current.UV.has_data
+        "uv index": {"value": $current.UV.raw, "units": "$current.UV.format(" ").lstrip()"},
+        #end if
+        #if $current.radiation.has_data
+        "radiation": {"value": $current.radiation.raw, "units": "$current.radiation.format(" ").lstrip()"},
+        #end if
+        #if $current.pm2_5.has_data
+        "pm2_5": {"value": $current.pm2_5.raw, "units": "$current.pm2_5.format(" ").lstrip()"},
+        #end if
+        #if $current.pm10_0.has_data
+        "pm10_0": {"value": $current.pm10_0.raw, "units": "$current.pm10_0.format(" ").lstrip()"},
+        #end if
+        #if $current.co2.has_data
+        "co2": {"value": $current.co2.raw, "units": "$current.co2.format(" ").lstrip()"},
+        #end if
+        #if $current.soilMoist1.has_data
+        "soilMoist1": {"value": $current.soilMoist1.raw, "units": "$current.soilMoist1.format(" ").lstrip()"},
+        #end if
         ## Last value can't end with a comma
         "void_end": null
     },
@@ -94,6 +114,14 @@
         #if $day.inHumidity.has_data
         "max inside humidity": {"value": $day.inHumidity.max.raw, "units": "$day.inHumidity.max.format(" ").lstrip()", "at": "$day.inHumidity.maxtime"},
         "min inside humidity": {"value": $day.inHumidity.min.raw, "units": "$day.inHumidity.min.format(" ").lstrip()", "at": "$day.inHumidity.mintime"},
+        #end if
+        #if $day.UV.has_data
+        "max uv index": {"value": $day.UV.max.raw, "units": "$day.UV.max.format(" ").lstrip()", "at": "$day.UV.maxtime"},
+        "min uv index": {"value": $day.UV.min.raw, "units": "$day.UV.min.format(" ").lstrip()", "at": "$day.UV.mintime"},
+        #end if
+        #if $day.radiation.has_data
+        "max radiation": {"value": $day.radiation.max.raw, "units": "$day.radiation.max.format(" ").lstrip()", "at": "$day.radiation.maxtime"},
+        "min radiation": {"value": $day.radiation.min.raw, "units": "$day.radiation.min.format(" ").lstrip()", "at": "$day.radiation.mintime"},
         #end if
         ## Last value can't end with a comma
         "void_end": null
@@ -136,6 +164,14 @@
         "max inside humidity": {"value": $week.inHumidity.max.raw, "units": "$week.inHumidity.max.format(" ").lstrip()", "at": "$week.inHumidity.maxtime"},
         "min inside humidity": {"value": $week.inHumidity.min.raw, "units": "$week.inHumidity.min.format(" ").lstrip()", "at": "$week.inHumidity.mintime"},
         #end if
+        #if $week.UV.has_data
+        "max uv index": {"value": $week.UV.max.raw, "units": "$week.UV.max.format(" ").lstrip()", "at": "$week.UV.maxtime"},
+        "min uv index": {"value": $week.UV.min.raw, "units": "$week.UV.min.format(" ").lstrip()", "at": "$week.UV.mintime"},
+        #end if
+        #if $week.radiation.has_data
+        "max radiation": {"value": $week.radiation.max.raw, "units": "$week.radiation.max.format(" ").lstrip()", "at": "$week.radiation.maxtime"},
+        "min radiation": {"value": $week.radiation.min.raw, "units": "$week.radiation.min.format(" ").lstrip()", "at": "$week.radiation.mintime"},
+        #end if
         ## Last value can't end with a comma
         "void_end": null
     },
@@ -177,6 +213,14 @@
         "max inside humidity": {"value": $month.inHumidity.max.raw, "units": "$month.inHumidity.max.format(" ").lstrip()", "at": "$month.inHumidity.maxtime"},
         "min inside humidity": {"value": $month.inHumidity.min.raw, "units": "$month.inHumidity.min.format(" ").lstrip()", "at": "$month.inHumidity.mintime"},
         #end if
+        #if $month.UV.has_data
+        "max uv index": {"value": $month.UV.max.raw, "units": "$month.UV.max.format(" ").lstrip()", "at": "$month.UV.maxtime"},
+        "min uv index": {"value": $month.UV.min.raw, "units": "$month.UV.min.format(" ").lstrip()", "at": "$month.UV.mintime"},
+        #end if
+        #if $month.radiation.has_data
+        "max radiation": {"value": $month.radiation.max.raw, "units": "$month.radiation.max.format(" ").lstrip()", "at": "$month.radiation.maxtime"},
+        "min radiation": {"value": $month.radiation.min.raw, "units": "$month.radiation.min.format(" ").lstrip()", "at": "$month.radiation.mintime"},
+        #end if
         ## Last value can't end with a comma
         "void_end": null
     },
@@ -217,6 +261,14 @@
         #if $year.inHumidity.has_data
         "max inside humidity": {"value": $year.inHumidity.max.raw, "units": "$year.inHumidity.max.format(" ").lstrip()", "at": "$year.inHumidity.maxtime"},
         "min inside humidity": {"value": $year.inHumidity.min.raw, "units": "$year.inHumidity.min.format(" ").lstrip()", "at": "$year.inHumidity.mintime"},
+        #end if
+        #if $year.UV.has_data
+        "max uv index": {"value": $year.UV.max.raw, "units": "$year.UV.max.format(" ").lstrip()", "at": "$year.UV.maxtime"},
+        "min uv index": {"value": $year.UV.min.raw, "units": "$year.UV.min.format(" ").lstrip()", "at": "$year.UV.mintime"},
+        #end if
+        #if $year.radiation.has_data
+        "max radiation": {"value": $year.radiation.max.raw, "units": "$year.radiation.max.format(" ").lstrip()", "at": "$year.radiation.maxtime"},
+        "min radiation": {"value": $year.radiation.min.raw, "units": "$year.radiation.min.format(" ").lstrip()", "at": "$year.radiation.mintime"},
         #end if
         ## Last value can't end with a comma
         "void_end": null

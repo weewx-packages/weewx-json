@@ -10,16 +10,16 @@ the JSON format for easier consumption by clients.
 
 ## Installing
 
-Download the latest release from the [github releases](https://github.com/teeks99/weewx-json/releases) page
+Download the latest release from the [github releases](https://github.com/weewx-packages/weewx-json/releases) page
 
-Run `wee_extension --install=weewx-json_X.X.tar.gz`
+Run `weectl extension install weewx-json_1.3.0.tar.gz`
 
 This will automatically add a `[[JSONReport]]` to your weewx.conf file that will include the `weewx.json` in your 
 `HTML_ROOT`. 
 
 ## Uninstalling
 
-Run `wee_extension --uninstall=weewx-json`
+Run `weectl extension uninstall JSON`
 
 ## Example Output
 
@@ -126,3 +126,22 @@ Run `wee_extension --uninstall=weewx-json`
     }
 }
 ```
+
+## Independent continuation
+
+This repository continues [teeks99/weewx-json](https://github.com/teeks99/weewx-json)
+from dd4b466644367f9f80f844fc50aa20ca9425bc3f, with full history and GPLv3 license.
+It is maintained separately. The UV and radiation change preserves the history
+of [upstream PR #15](https://github.com/teeks99/weewx-json/pull/15).
+
+Version 1.3.0 adds `uv index` and `radiation` to current output in both reports.
+The full report also includes their minima, maxima and times in each period.
+Optional current fields `pm2_5`, `pm10_0`, `co2` and `soilMoist1` use the station's
+report units. Each field is omitted when its observation is absent or null.
+Zero is a valid value. Existing field names and the `void_end` sentinel remain.
+Station location and URL strings are escaped as JSON.
+
+The `#if` and `#end if` lines are active Cheetah directives. They prevent missing
+schema fields from producing invalid JSON. The report tests create local SQLite
+archives with minimal and extended schemas, render both actual WeeWX reports,
+and parse the output with Python's JSON parser. Run `python -m pytest -q tests`.

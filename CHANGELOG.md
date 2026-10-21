@@ -1,3 +1,9 @@
+1.3.0, 2026-10-22
+-----------------
+
+* Add optional UV, radiation, particulate, CO2 and soil moisture output.
+* Escape station strings and use the WeeWX 5 installer.
+
 Upcoming
 --------
 

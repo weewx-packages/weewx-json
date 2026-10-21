@@ -1,4 +1,5 @@
-from setup import ExtensionInstaller
+# Modified 2026-10-22: use the WeeWX 5 extension installer.
+from weecfg.extension import ExtensionInstaller
 
 def loader():
     return JSON_Installer()

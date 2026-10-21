@@ -1,11 +1,13 @@
+## Modified 2026-10-22: optional observations and JSON string escaping.
+#import json
 {
     "station":
     {
-        "location": "$station.location",
+        "location": $json.dumps($station.location, ensure_ascii=False),
         "latitude": $station.stn_info.latitude_f,
         "longitude": $station.stn_info.longitude_f,
         "altitude (meters)": $station.altitude.meter.raw,
-        "link": "$station.station_url"
+        "link": $json.dumps($station.station_url, ensure_ascii=False)
     },
     "generation":
     {
@@ -38,6 +40,24 @@
         #end if
         #if $current.rainRate.has_data
         "rain rate": {"value": $current.rainRate.raw, "units": "$current.rainRate.format(" ").lstrip()"},
+        #end if
+        #if $current.UV.has_data
+        "uv index": {"value": $current.UV.raw, "units": "$current.UV.format(" ").lstrip()"},
+        #end if
+        #if $current.radiation.has_data
+        "radiation": {"value": $current.radiation.raw, "units": "$current.radiation.format(" ").lstrip()"},
+        #end if
+        #if $current.pm2_5.has_data
+        "pm2_5": {"value": $current.pm2_5.raw, "units": "$current.pm2_5.format(" ").lstrip()"},
+        #end if
+        #if $current.pm10_0.has_data
+        "pm10_0": {"value": $current.pm10_0.raw, "units": "$current.pm10_0.format(" ").lstrip()"},
+        #end if
+        #if $current.co2.has_data
+        "co2": {"value": $current.co2.raw, "units": "$current.co2.format(" ").lstrip()"},
+        #end if
+        #if $current.soilMoist1.has_data
+        "soilMoist1": {"value": $current.soilMoist1.raw, "units": "$current.soilMoist1.format(" ").lstrip()"},
         #end if
         "void_end": null
     }
