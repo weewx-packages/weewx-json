@@ -1,5 +1,7 @@
 # weewx-json
-Extension for JSON output from weewx
+JSON reports for WeeWX archive data, including current values and day, week,
+month and year summaries. This independent continuation maintains release
+1.3.0 for WeeWX 5.5.2–5.6 and Python 3.10–3.14.
 
 This extension provides a skin that is not designed to be used from a web browser, rather for consumption from another
 type of client...smartphone app, dynamic javascript page, automated bot.
@@ -10,12 +12,42 @@ the JSON format for easier consumption by clients.
 
 ## Installing
 
-Download the latest release from the [github releases](https://github.com/weewx-packages/weewx-json/releases) page
+The skin uses WeeWX's Cheetah generator and needs no additional Python package.
 
-Run `weectl extension install weewx-json_1.3.0.tar.gz`
+For a pip installation, activate the existing virtual environment that runs
+your WeeWX service before running these commands. Both `python` and `weectl`
+must come from that environment. For a distribution package installation, use
+its `weectl`, with `sudo` if required. Add `--config /path/to/weewx.conf` to the
+extension command when your station configuration is not found automatically.
 
-This will automatically add a `[[JSONReport]]` to your weewx.conf file that will include the `weewx.json` in your 
-`HTML_ROOT`. 
+Install the published archive with WeeWX 5's extension installer:
+
+```sh
+weectl extension install https://github.com/weewx-packages/weewx-json/releases/download/v1.3.0/weewx-json_1.3.0.tar.gz
+```
+
+Restart your WeeWX service after configuration, for example
+`sudo systemctl restart weewx` on systemd. The installer does not restart it
+for you.
+
+The installer copies `skins/JSON` and enables `JSONReport`. To put the files
+in a separate web directory, set:
+
+```ini
+[StdReport]
+    [[JSONReport]]
+        skin = JSON
+        enable = true
+        HTML_ROOT = /var/www/html/weewx/json
+```
+
+Wait for the next archive interval or run `weectl report run JSONReport`.
+The report writes `weewx.json` and `current_minimal.json`; it does not start an
+HTTP server. Serve the directory yourself if remote clients need it.
+Set `[Extras] timestamp_fmt` in [`skin.conf`](skins/JSON/skin.conf) to `iso`
+or `human`. Missing optional observations are omitted; zero remains valid.
+Back up custom templates before installing a newer fixed archive.
+
 
 ## Uninstalling
 
@@ -145,3 +177,7 @@ The `#if` and `#end if` lines are active Cheetah directives. They prevent missin
 schema fields from producing invalid JSON. The report tests create local SQLite
 archives with minimal and extended schemas, render both actual WeeWX reports,
 and parse the output with Python's JSON parser. Run `python -m pytest -q tests`.
+
+## License
+
+Tom Kent's original work and the continuation use [GPLv3](LICENSE).
