@@ -1,37 +1,49 @@
 # weewx-json
-JSON reports for WeeWX archive data, including current values and day, week,
-month and year summaries. This independent continuation maintains release
-1.3.0 for WeeWX 5.5.2–5.6 and Python 3.10–3.14.
 
-This extension provides a skin that is not designed to be used from a web browser, rather for consumption from another
-type of client...smartphone app, dynamic javascript page, automated bot.
+A skin that writes WeeWX observations as JSON files for other programs, such
+as phone apps, JavaScript pages or bots. It is not meant for a web browser.
+It covers most of the data in the Seasons skin's `rss.xml`. It does not serve
+the files; publish them with your web server.
 
-This is most of the same data that can be found in the default "Seasons" report's `rss.xml` output, but formatted in
-the JSON format for easier consumption by clients.
+Independent continuation of
+[teeks99/weewx-json](https://github.com/teeks99/weewx-json) by Tom Kent, with
+its full history. The UV and radiation output keeps the history of
+[upstream PR #15](https://github.com/teeks99/weewx-json/pull/15).
 
+## Requirements
 
-## Installing
+No Python package beyond WeeWX. The skin uses the Cheetah generator.
 
-The skin uses WeeWX's Cheetah generator and needs no additional Python package.
+## Installation
 
-For a pip installation, activate the existing virtual environment that runs
-your WeeWX service before running these commands. Both `python` and `weectl`
-must come from that environment. For a distribution package installation, use
-its `weectl`, with `sudo` if required. Add `--config /path/to/weewx.conf` to the
-extension command when your station configuration is not found automatically.
+Install `json` from the [WeeWX packages catalog](https://github.com/weewx-packages/catalog/blob/main/packages/json.md).
+The catalog page lists the current release, its WeeWX and Python
+requirements, and the install, update and removal commands.
 
-Install the published archive with WeeWX 5's extension installer:
+The installer copies `skins/JSON` and adds an enabled report `JSONReport`.
+After the next archive interval, or after `weectl report run JSONReport`, the
+files are in the report's `HTML_ROOT`.
 
-```sh
-weectl extension install https://github.com/weewx-packages/weewx-json/releases/download/v1.3.0/weewx-json_1.3.0.tar.gz
+## Configuration
+
+What the installer adds to `weewx.conf`:
+
+```ini
+[StdReport]
+    [[JSONReport]]
+        skin = JSON
+        enable = true
 ```
 
-Restart your WeeWX service after configuration, for example
-`sudo systemctl restart weewx` on systemd. The installer does not restart it
-for you.
+The report writes two files:
 
-The installer copies `skins/JSON` and enables `JSONReport`. To put the files
-in a separate web directory, set:
+| File | Content |
+| --- | --- |
+| `weewx.json` | Station, generation time, current values, and the extremes and rain total of the day, week, month and year. |
+| `current_minimal.json` | Station, generation time and current values. |
+
+Without an `HTML_ROOT` of its own, the report writes to `[StdReport]
+HTML_ROOT`, next to the other reports. To use a separate directory:
 
 ```ini
 [StdReport]
@@ -41,19 +53,35 @@ in a separate web directory, set:
         HTML_ROOT = /var/www/html/weewx/json
 ```
 
-Wait for the next archive interval or run `weectl report run JSONReport`.
-The report writes `weewx.json` and `current_minimal.json`; it does not start an
-HTTP server. Serve the directory yourself if remote clients need it.
-Set `[Extras] timestamp_fmt` in [`skin.conf`](skins/JSON/skin.conf) to `iso`
-or `human`. Missing optional observations are omitted; zero remains valid.
-Back up custom templates before installing a newer fixed archive.
+Options in `[Extras]` of [skins/JSON/skin.conf](skins/JSON/skin.conf), which
+you can override under `[[JSONReport]]` in `weewx.conf`:
 
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `timestamp_fmt` | `iso` | Format of `generation.time`. `iso` writes `%Y-%m-%dT%H:%M:%S%z`, `human` writes `%a, %d %b %Y %H:%M:%S %Z`. Any other value means `iso`. |
 
-## Uninstalling
+```ini
+[StdReport]
+    [[JSONReport]]
+        [[[Extras]]]
+            timestamp_fmt = human
+```
 
-Run `weectl extension uninstall JSON`
+### Output
 
-## Example Output
+Each value is an object with `value` and `units`. Period minima and maxima
+add `at`, formatted with the report's time formats, not with `timestamp_fmt`.
+Values use the report's unit system. `altitude (meters)` is always in meters.
+
+A field appears only when its observation has data. Zero counts as data.
+Each section ends with `"void_end": null`. Not shown in the example:
+`current` can also hold `wind direction`, `inside humidity`, `uv index`,
+`radiation`, `pm2_5`, `pm10_0`, `co2` and `soilMoist1`. The periods can also
+hold minimum and maximum `inside humidity`, `uv index` and `radiation`.
+`current_minimal.json` has no dew point, heat index, wind chill or inside
+values.
+
+This example uses `timestamp_fmt = human`:
 
 ```json
 {
@@ -159,25 +187,26 @@ Run `weectl extension uninstall JSON`
 }
 ```
 
-## Independent continuation
+## Limitations
 
-This repository continues [teeks99/weewx-json](https://github.com/teeks99/weewx-json)
-from dd4b466644367f9f80f844fc50aa20ca9425bc3f, with full history and GPLv3 license.
-It is maintained separately. The UV and radiation change preserves the history
-of [upstream PR #15](https://github.com/teeks99/weewx-json/pull/15).
+- The files change only when the report runs. `current` holds the last
+  archive record, not LOOP data.
+- The tests use local SQLite archives, not a running station.
 
-Version 1.3.0 adds `uv index` and `radiation` to current output in both reports.
-The full report also includes their minima, maxima and times in each period.
-Optional current fields `pm2_5`, `pm10_0`, `co2` and `soilMoist1` use the station's
-report units. Each field is omitted when its observation is absent or null.
-Zero is a valid value. Existing field names and the `void_end` sentinel remain.
-Station location and URL strings are escaped as JSON.
+## Development
 
-The `#if` and `#end if` lines are active Cheetah directives. They prevent missing
-schema fields from producing invalid JSON. The report tests create local SQLite
-archives with minimal and extended schemas, render both actual WeeWX reports,
-and parse the output with Python's JSON parser. Run `python -m pytest -q tests`.
+```sh
+python -m pytest -q tests
+```
+
+Run it in an environment with WeeWX and pytest. The tests render both reports
+against archives with a minimal and an extended schema and parse the result
+as JSON. The `#if` lines in the templates are Cheetah directives that leave
+out fields missing from the schema, so the output stays valid JSON.
+
+`python3 build_package.py --set-version VERSION` builds the installable
+archive in `dist/`.
 
 ## License
 
-Tom Kent's original work and the continuation use [GPLv3](LICENSE).
+Tom Kent's original work and the continuation use the [GPLv3](LICENSE).
